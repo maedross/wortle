@@ -24,9 +24,9 @@ main = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
-
+    let winnowed_word_list = [x | x <- word_list, length x == 5]
     starter_gen <- getStdGen
-    pickSecretWord word_list starter_gen
+    pickSecretWord winnowed_word_list starter_gen
 
 
 prompt :: String -> IO String
