@@ -4,9 +4,7 @@ import System.IO
     ( hFlush, hGetContents, openFile, stdout, IOMode(ReadMode) )
 import System.Random ( getStdGen, Random(randomR), StdGen )
 import Control.Monad ( when )
-import Control.Applicative (Alternative(empty))
-import GHC.Data.StringBuffer (StringBuffer(len), decodePrevNChars)
-import GHC.CmmToAsm.AArch64.Instr (x0)
+
 
 --- TODO: 
 ---       Allow user to choose number of guesses
@@ -15,27 +13,27 @@ main :: IO ()
 main = do
     putStrLn "Wilkommen zu Wortle"
     putStrLn "============================"
-    putStrLn "(4) watts"
+    putStrLn "(4) heiss"
     putStrLn "    *+---"
     putStrLn "Sie haben 4 weitere Versuche."
-    putStrLn "Das 'w' ist im Wort und an der richtigen Stelle."
-    putStrLn "Das 'a' ist im Word aber an der falschen Stelle."
-    putStrLn "Das 't' und das 's' sind nicht im Wort."
+    putStrLn "Das 'h' ist im Wort und an der richtigen Stelle."
+    putStrLn "Das 'e' ist im Word aber an der falschen Stelle."
+    putStrLn "Das 'i' und das 's' sind nicht im Wort."
     putStrLn ""
-    preGameInstructions
+    starter_gen <- getStdGen
+    preGameInstructions starter_gen
     
 
-preGameInstructions :: IO ()
-preGameInstructions = do
+preGameInstructions :: StdGen -> IO ()
+preGameInstructions gen = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
     printWords word_list
-    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst drück die Eingabetaste.\n"
+    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst typ \"egal\".\n"
     let winnowed_word_list = filterWordList word_list wordLength
     printWords winnowed_word_list
-    starter_gen <- getStdGen
-    pickSecretWord winnowed_word_list starter_gen
+    pickSecretWord winnowed_word_list gen
 
 
 printWords :: [[Char]] -> IO ()
@@ -55,7 +53,7 @@ prompt str = do
 
 pickSecretWord :: [[Char]] -> StdGen -> IO ()
 pickSecretWord words gen = do
-    let (index, newGen) = randomR (0, length words) gen :: (Int, StdGen)
+    let (index, newGen) = randomR (0, length words - 1) gen :: (Int, StdGen)
     putStrLn ("Words: " ++ show words ++ "\nIndex: " ++ show index)
     getGuess 5 (words !! index) newGen words
 
@@ -87,7 +85,7 @@ genHint word ind (g:gs)
 askCont :: [[Char]] -> StdGen -> IO ()
 askCont words gen = do 
     continue <- prompt "Möchten Sie wiederspielen? (j/n): "
-    when (continue == "j") preGameInstructions
+    when (continue == "j") (preGameInstructions gen)
 
 
 filterWordList :: [[Char]] -> [Char] -> [[Char]]
