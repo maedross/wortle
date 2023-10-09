@@ -22,7 +22,11 @@ main = do
     putStrLn "Das 'a' ist im Word aber an der falschen Stelle."
     putStrLn "Das 't' und das 's' sind nicht im Wort."
     putStrLn ""
+    preGameInstructions
+    
 
+preGameInstructions :: IO ()
+preGameInstructions = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
@@ -83,7 +87,7 @@ genHint word ind (g:gs)
 askCont :: [[Char]] -> StdGen -> IO ()
 askCont words gen = do 
     continue <- prompt "Möchten Sie wiederspielen? (j/n): "
-    when (continue == "j") (pickSecretWord words gen)
+    when (continue == "j") preGameInstructions
 
 
 filterWordList :: [[Char]] -> [Char] -> [[Char]]
