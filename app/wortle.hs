@@ -7,7 +7,6 @@ import Control.Monad ( when )
 
 
 --- TODO: 
----       Allow user to choose number of guesses
 ---       Allow user to choose easy/hard mode (if the guess has to be a word)
 main :: IO ()
 main = do
@@ -29,19 +28,12 @@ preGameInstructions gen = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
-    printWords word_list
-    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst typ \"egal\".\n"
+    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl.\n"
     let winnowed_word_list = filterWordList word_list wordLength
-    printWords winnowed_word_list
-    pickSecretWord winnowed_word_list gen
-
-
-printWords :: [[Char]] -> IO ()
-printWords [] = do
-    putStrLn ""
-printWords (x:xs) = do 
-    putStrLn x
-    printWords xs
+    guessAmt <- prompt "Wie viele Versuche solle ich Ihnen geben? Der Standard ist 5.\n"
+    if not (null guessAmt) && all (`elem` "1234567890") guessAmt 
+        then pickSecretWord winnowed_word_list gen (read guessAmt) 
+        else pickSecretWord winnowed_word_list gen 5
 
 
 prompt :: String -> IO String
@@ -51,11 +43,11 @@ prompt str = do
     getLine
 
 
-pickSecretWord :: [[Char]] -> StdGen -> IO ()
-pickSecretWord words gen = do
+pickSecretWord :: [[Char]] -> StdGen -> Int -> IO ()
+pickSecretWord words gen guesses = do
     let (index, newGen) = randomR (0, length words - 1) gen :: (Int, StdGen)
-    putStrLn ("Words: " ++ show words ++ "\nIndex: " ++ show index)
-    getGuess 5 (words !! index) newGen words
+    putStrLn ("Das Wort hat " ++ show (length (words !! index)) ++ " Buchstaben.")
+    getGuess guesses (words !! index) newGen words 
 
 
 getGuess :: (Eq t, Num t, Show t) => t -> [Char] -> StdGen -> [[Char]] -> IO ()
@@ -68,6 +60,12 @@ getGuess count word nextGen words
         if guess == word then do
             putStrLn "Sie haben gewonnen..."
             askCont words nextGen
+        else if length guess > length word then do
+            putStrLn "Das Wort ist nicht so lang! Versuch es wieder."
+            getGuess count word nextGen words
+        else if length guess < length word then do
+            putStrLn "Das Wort ist noch länger! Versuch es wieder."
+            getGuess count word nextGen words
         else do
             let clue = genHint word 0 guess
             putStrLn ("    " ++ clue)
@@ -90,5 +88,5 @@ askCont words gen = do
 
 filterWordList :: [[Char]] -> [Char] -> [[Char]]
 filterWordList dict len
-    | all (`elem` "1234567890") len = [x | x <- dict, length x == read len]
+    | not (null len) && all (`elem` "1234567890") len = [x | x <- dict, length x == read len]
     | otherwise = dict
