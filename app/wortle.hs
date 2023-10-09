@@ -31,9 +31,10 @@ preGameInstructions gen = do
     let winnowed_word_list = filterWordList word_list wordLength
     guessAmt <- prompt "Wie viele Versuche solle ich Ihnen geben? Der Standard ist 5.\n"
     diffMode <- prompt "Und letztens, möchten Sie das Spiel im leichten oder im schweren modus spielen?\nIm schweren Modus, muss alle Ihre Verusche echte Wörter sein. Der Standard ist schweren Modus.\n1)Leicht\n2)Schwer\n"
+    print diffMode
     if not (null guessAmt) && all (`elem` "1234567890") guessAmt then 
-        pickSecretWord winnowed_word_list gen (read guessAmt) (diffMode == "1")
-        else pickSecretWord winnowed_word_list gen 5 (diffMode == "1")
+        pickSecretWord winnowed_word_list gen (read guessAmt) (diffMode /= "1")
+        else pickSecretWord winnowed_word_list gen 5 (diffMode /= "1")
     
 
 
