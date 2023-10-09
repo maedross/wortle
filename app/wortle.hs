@@ -27,7 +27,7 @@ preGameInstructions gen = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
-    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl.\n"
+    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst wird sie zufällig sein.\n"
     let winnowed_word_list = filterWordList word_list wordLength
     guessAmt <- prompt "Wie viele Versuche solle ich Ihnen geben? Der Standard ist 5.\n"
     diffMode <- prompt "Und letztens, möchten Sie das Spiel im leichten oder im schweren modus spielen?\nIm schweren Modus, muss alle Ihre Verusche echte Wörter sein. Der Standard ist schweren Modus.\n1)Leicht\n2)Schwer\n"
@@ -73,7 +73,7 @@ getGuess count word nextGen words hardMode
             getGuess count word nextGen words hardMode
         else do
             let clue = genHint word 0 guess
-            putStrLn ("    " ++ clue)
+            putStrLn (replicate (length ('(': show count ++ ") ")) ' ' ++ clue)
             getGuess (count-1) word nextGen words hardMode
 
 
