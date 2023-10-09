@@ -8,9 +8,8 @@ import Control.Applicative (Alternative(empty))
 import GHC.Data.StringBuffer (StringBuffer(len), decodePrevNChars)
 import GHC.CmmToAsm.AArch64.Instr (x0)
 
---- TODO: Use folding on genHint, make a new function for picking the character
+--- TODO: 
 ---       Allow user to choose number of guesses
----       Use word length to winnow word list
 ---       Allow user to choose easy/hard mode (if the guess has to be a word)
 main :: IO ()
 main = do
@@ -28,7 +27,7 @@ main = do
     wordString <- hGetContents handle
     let word_list = lines wordString 
     printWords word_list
-    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst drück die Eingabetaste."
+    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst drück die Eingabetaste.\n"
     let winnowed_word_list = filterWordList word_list wordLength
     printWords winnowed_word_list
     starter_gen <- getStdGen
@@ -42,6 +41,7 @@ printWords (x:xs) = do
     putStrLn x
     printWords xs
 
+
 prompt :: String -> IO String
 prompt str = do
     putStr str
@@ -52,10 +52,10 @@ prompt str = do
 pickSecretWord :: [[Char]] -> StdGen -> IO ()
 pickSecretWord words gen = do
     let (index, newGen) = randomR (0, length words) gen :: (Int, StdGen)
+    putStrLn ("Words: " ++ show words ++ "\nIndex: " ++ show index)
     getGuess 5 (words !! index) newGen words
 
 
---- TODO: Require guesses to be words
 getGuess :: (Eq t, Num t, Show t) => t -> [Char] -> StdGen -> [[Char]] -> IO ()
 getGuess count word nextGen words
     | count == 0 = do
@@ -68,7 +68,7 @@ getGuess count word nextGen words
             askCont words nextGen
         else do
             let clue = genHint word 0 guess
-            putStrLn ("    " ++ genHint word 0 guess)
+            putStrLn ("    " ++ clue)
             getGuess (count-1) word nextGen words
 
 
