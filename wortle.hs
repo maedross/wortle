@@ -4,11 +4,14 @@ import System.IO
     ( hFlush, hGetContents, openFile, stdout, IOMode(ReadMode) )
 import System.Random ( getStdGen, Random(randomR), StdGen )
 import Control.Monad ( when )
+import Control.Applicative (Alternative(empty))
+import GHC.Data.StringBuffer (StringBuffer(len), decodePrevNChars)
+import GHC.CmmToAsm.AArch64.Instr (x0)
 
---- TODO: Allow user to choose length of word
+--- TODO: Use folding on genHint, make a new function for picking the character
 ---       Allow user to choose number of guesses
 ---       Use word length to winnow word list
----       Allow user to choose easy/hard mode
+---       Allow user to choose easy/hard mode (if the guess has to be a word)
 main :: IO ()
 main = do
     putStrLn "Wilkommen zu Wortle"
@@ -24,10 +27,20 @@ main = do
     handle <- openFile "Wortliste.txt" ReadMode
     wordString <- hGetContents handle
     let word_list = lines wordString 
-    let winnowed_word_list = [x | x <- word_list, length x == 5]
+    printWords word_list
+    wordLength <- prompt "Möchten Sie ein Wort mit einer bestimmeten Länge? Wenn ja, wähl eine Zahl, sonst drück die Eingabetaste."
+    let winnowed_word_list = filterWordList word_list wordLength
+    printWords winnowed_word_list
     starter_gen <- getStdGen
     pickSecretWord winnowed_word_list starter_gen
 
+
+printWords :: [[Char]] -> IO ()
+printWords [] = do
+    putStrLn ""
+printWords (x:xs) = do 
+    putStrLn x
+    printWords xs
 
 prompt :: String -> IO String
 prompt str = do
@@ -35,10 +48,12 @@ prompt str = do
     hFlush stdout
     getLine
 
+
 pickSecretWord :: [[Char]] -> StdGen -> IO ()
 pickSecretWord words gen = do
     let (index, newGen) = randomR (0, length words) gen :: (Int, StdGen)
-    getGuess 6 (words !! index) newGen words
+    getGuess 5 (words !! index) newGen words
+
 
 --- TODO: Require guesses to be words
 getGuess :: (Eq t, Num t, Show t) => t -> [Char] -> StdGen -> [[Char]] -> IO ()
@@ -56,6 +71,7 @@ getGuess count word nextGen words
             putStrLn ("    " ++ genHint word 0 guess)
             getGuess (count-1) word nextGen words
 
+
 genHint :: [Char] -> Int -> [Char] -> [Char]
 genHint _ _ [] = []
 genHint word ind (g:gs)
@@ -63,7 +79,14 @@ genHint word ind (g:gs)
     | elem g word = '+' : genHint word (ind+1) gs
     | otherwise = '-' : genHint word (ind+1) gs
 
+
 askCont :: [[Char]] -> StdGen -> IO ()
 askCont words gen = do 
     continue <- prompt "Möchten Sie wiederspielen? (j/n): "
     when (continue == "j") (pickSecretWord words gen)
+
+
+filterWordList :: [[Char]] -> [Char] -> [[Char]]
+filterWordList dict len
+    | all (`elem` "1234567890") len = [x | x <- dict, length x == read len]
+    | otherwise = dict
