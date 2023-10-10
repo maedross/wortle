@@ -8,4 +8,4 @@ Das ist eine kleine Haskell-App, die das Spiel "Wordle" imitiert. Ich habe ein P
 ## Herunterladen
 Man muss mindestens **beide** wortle.exe und Wortliste.txt herunterladen. Öffnen Sie einfach wortle.exe und das Spiel wird in ihrem Terminal angezeigt!
 
-Wenn Sie die App bearbeiten möchte, herunterladen Sie [Haskell](https://www.haskell.org/downloads/) und klonen Sie das Projekt. Sie können die ausführbare Datei neu erstellen, indem Sie den Befehl `cabal build`.
+Wenn Sie die App bearbeiten möchte, herunterladen Sie [Haskell](https://www.haskell.org/downloads/) und klonen Sie das Projekt. Sie können die ausführbare Datei neu erstellen, indem Sie den Befehl `cabal build`. Sie werden die neue ausführbare Datei in `dist-newstyle\build\x86_64-windows\ghc-9.2.5\wortle-0.1.0.0\x\wortle\build\wortle\wortle.exe`. Sie können die App ausführen durch `cabal run` oder durch Kopieren der ausführbaren Datei in das Stammverzeichnis des Projektordners starten. Ich habe das nicht auf MacOS oder Linux getestet, und es kann anders funktionieren.
